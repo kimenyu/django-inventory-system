@@ -1,0 +1,15 @@
+# Virtual environment
+env/
+venv/
+
+# SQLite database
+db.sqlite3
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*.sqlite3-journal
+
+# VSCode or PyCharm config 
+.vscode/
+.idea/
