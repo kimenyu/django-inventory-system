@@ -48,3 +48,48 @@ class BatchReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Batch
         fields = ['batch_number', 'expiry_date', 'product']
+
+class WarehouseWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Warehouse
+        fields = ['name', 'location']
+
+class SupplierWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Supplier
+        fields = ['name', 'contact_info']
+
+class PurchaseOrderItemReadSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ['order', 'product', 'quantity', 'warehouse', 'batch']
+
+class PurchaseOrderReadSerializer(serializers.ModelSerializer):
+    supplier = serializers.StringRelatedField()
+    purchase_order_item = PurchaseOrderItemReadSerializer(many=True)
+    class Meta:
+        fields = ['supplier', 'date', 'status']
+
+class SupplierReadSerializer(serializers.ModelSerializer):
+    purchase_order = PurchaseOrderReadSerializer(many=True)
+    class Meta:
+        model = Supplier
+        fields = ['name', 'contact_info', 'purchase_order']
+
+class CustomerWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ['name', 'contact_info']
+
+class PurchaseOrderWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ['supplier', 'date', 'status']
+
+
+class PurchaseOrderItemWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = ['order', 'product', 'quantity', 'warehouse', 'batch']
+
+    def validate_quantity(self, value: float) -> float:
+        if value <= 0:
+            raise serializers.ValidationError("Quantity must be greater than 0")
+        return value
+
