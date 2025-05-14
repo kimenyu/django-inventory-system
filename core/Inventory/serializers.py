@@ -1,13 +1,10 @@
 from rest_framework import serializers
 from .models import Category, Product, Warehouse, Batch, SalesOrder, SalesOrderItem, StockIn, StockOut, Supplier, Customer, PurchaseOrder, PurchaseOrderItem, Inventory, AuditLog
-from typing import Any, Dict, List
 
-
-
-class ProductSerializer(serializers.ModelSerializer):
+class ProductWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['sku', 'name', 'description', 'price', 'unit']
+        fields = ['sku', 'name', 'description', 'price', 'unit', 'category']
 
     def validate_price(self, value: float) -> float:
         if value < 0:
@@ -15,31 +12,39 @@ class ProductSerializer(serializers.ModelSerializer):
         return value
 
 
-class CategorySerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True)
+class ProductReadSerializer(serializers.ModelSerializer):
+    category = serializers.StringRelatedField()
+
+    class Meta:
+        model = Product
+        fields = ['sku', 'name', 'description', 'price', 'unit', 'category']
+
+
+class CategoryWriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['name', 'description']
+
+
+class CategoryReadSerializer(serializers.ModelSerializer):
+    products = ProductReadSerializer(source='product_set', many=True)
 
     class Meta:
         model = Category
         fields = ['name', 'description', 'products']
 
-    def create(self, validated_data: Dict[str, Any]) -> Category:
-        products_data: List[Dict[str, Any]] = validated_data.pop('products')
-        category = Category.objects.create(**validated_data)
-        for product_data in products_data:
-            Product.objects.create(category=category, **product_data)
-        return category
 
-    def update(self, instance: Category, validated_data: Dict[str, Any]) -> Category:
-        products_data: List[Dict[str, Any]] = validated_data.pop('products', [])
+class BatchWriteSerializer(serializers.ModelSerializer):
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
 
-        # Update category fields
-        instance.name = validated_data.get('name', instance.name)
-        instance.description = validated_data.get('description', instance.description)
-        instance.save()
+    class Meta:
+        model = Batch
+        fields = ['batch_number', 'expiry_date', 'product']
 
-        # Delete existing products and recreate
-        instance.product_set.all().delete()
-        for product_data in products_data:
-            Product.objects.create(category=instance, **product_data)
 
-        return instance
+class BatchReadSerializer(serializers.ModelSerializer):
+    product = ProductReadSerializer()
+
+    class Meta:
+        model = Batch
+        fields = ['batch_number', 'expiry_date', 'product']
