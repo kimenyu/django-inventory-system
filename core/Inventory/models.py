@@ -104,6 +104,7 @@ class Inventory(models.Model):
     class Meta:
         unique_together = ('product', 'warehouse', 'batch')
 
+
 class AuditLog(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
     action = models.TextField()
