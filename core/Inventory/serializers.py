@@ -94,16 +94,26 @@ class SupplierReadSerializer(serializers.ModelSerializer):
 
 class CustomerWriteSerializer(serializers.ModelSerializer):
     class Meta:
+        model = Customer
         fields = ['name', 'contact_info']
 
-class SalesOrderReadSerializer(serializers.ModelSerializer):
+class SalesOrderItemsReadSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ['customer', 'date', 'status']
+        model = SalesOrderItem
+        fields = ['order', 'quantity', 'warehouse', 'batch', 'product', 'date']
+
+class SalesOrderReadSerializer(serializers.ModelSerializer):
+    sales_order_items = SalesOrderItemsReadSerializer(many=True, source='items')
+
+    class Meta:
+        model = SalesOrder
+        fields = ['customer', 'date', 'status', 'sales_order_items']
         read_only_fields = ['date']
 
 class CustomerReadSerializer(serializers.ModelSerializer):
-    sales_orders = SalesOrderReadSerializer(many=True)
+    sales_orders = SalesOrderReadSerializer(many=True, source="salesorder_set")
     class Meta:
+        model = Customer
         fields = ['name', 'contact_info', 'sales_orders']
 
 class PurchaseOrderWriteSerializer(serializers.ModelSerializer):
@@ -129,6 +139,7 @@ class SalesOrderWriteSerializer(serializers.ModelSerializer):
     customer = serializers.PrimaryKeyRelatedField(queryset=Customer.objects.all())
 
     class Meta:
+        model = SalesOrder
         fields = ['customer', 'date', 'status']
 
 
@@ -136,10 +147,11 @@ class SalesOrderItemWriteSerializer(serializers.ModelSerializer):
     order = serializers.PrimaryKeyRelatedField(queryset=SalesOrder.objects.all())
     warehouse = serializers.PrimaryKeyRelatedField(queryset=Warehouse.objects.all())
     batch = serializers.PrimaryKeyRelatedField(queryset=Batch.objects.all())
-    purchase_order = serializers.PrimaryKeyRelatedField(queryset=PurchaseOrder.objects.all())
+    product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
 
     class Meta:
-        fields = ['order', 'quantity', 'warehouse', 'batch', 'purchase_order', 'date']
+        model = SalesOrderItem
+        fields = ['order', 'quantity', 'warehouse', 'batch', 'product', 'date']
 
 class StockInWriteSerializer(serializers.ModelSerializer):
     product = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all())
@@ -148,6 +160,7 @@ class StockInWriteSerializer(serializers.ModelSerializer):
     purchase_order = serializers.PrimaryKeyRelatedField(queryset=PurchaseOrder.objects.all())
 
     class Meta:
+        model = StockIn
         fields = ['product', 'quantity', 'warehouse', 'batch', 'purchase_order', 'date']
 
 
@@ -158,6 +171,7 @@ class StockOutWriteSerializer(serializers.ModelSerializer):
     sales_order = serializers.PrimaryKeyRelatedField(queryset=SalesOrder.objects.all())
 
     class Meta:
+        model = StockOut
         fields = ['product', 'quantity', 'warehouse', 'batch', 'sales_order', 'date']
 
 class InventoryWriteSerializer(serializers.ModelSerializer):
@@ -166,13 +180,16 @@ class InventoryWriteSerializer(serializers.ModelSerializer):
     batch = serializers.PrimaryKeyRelatedField(queryset=Batch.objects.all())
 
     class Meta:
+        model = Inventory
         fields = ['product', 'warehouse', 'batch', 'quantity']
 
 class InventoryReadSerializer(serializers.ModelSerializer):
     class Meta:
+        model = Inventory
         fields = ['product', 'warehouse', 'batch', 'quantity']
 
 class AuditLogWriteSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all())
     class Meta:
+        model = AuditLog
         fields = ['user', 'action', 'timestamp']

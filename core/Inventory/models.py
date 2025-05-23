@@ -77,6 +77,7 @@ class SalesOrderItem(models.Model):
     quantity = models.PositiveIntegerField()
     warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE)
     batch = models.ForeignKey(Batch, on_delete=models.SET_NULL, null=True, blank=True)
+    date = models.DateField(auto_now=True)
 
 class StockIn(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
