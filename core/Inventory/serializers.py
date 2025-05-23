@@ -44,8 +44,7 @@ class BatchWriteSerializer(serializers.ModelSerializer):
 
 
 class BatchReadSerializer(serializers.ModelSerializer):
-    product = ProductReadSerializer(many=True)
-
+    product = ProductReadSerializer()
     class Meta:
         model = Batch
         fields = ['batch_number', 'expiry_date', 'product']
@@ -76,16 +75,19 @@ class SupplierWriteSerializer(serializers.ModelSerializer):
 
 class PurchaseOrderItemReadSerializer(serializers.ModelSerializer):
     class Meta:
+        model = PurchaseOrderItem
         fields = ['order', 'product', 'quantity', 'warehouse', 'batch']
 
 class PurchaseOrderReadSerializer(serializers.ModelSerializer):
     supplier = serializers.StringRelatedField()
-    purchase_order_item = PurchaseOrderItemReadSerializer(many=True)
+    purchase_order_item = PurchaseOrderItemReadSerializer(many=True, source='items')
     class Meta:
-        fields = ['supplier', 'date', 'status']
+        model = PurchaseOrder
+        fields = ['supplier', 'purchase_order_item', 'date', 'status']
 
 class SupplierReadSerializer(serializers.ModelSerializer):
-    purchase_order = PurchaseOrderReadSerializer(many=True)
+    purchase_order = PurchaseOrderReadSerializer(many=True, source='purchaseorder_set')
+
     class Meta:
         model = Supplier
         fields = ['name', 'contact_info', 'purchase_order']
@@ -106,7 +108,9 @@ class CustomerReadSerializer(serializers.ModelSerializer):
 
 class PurchaseOrderWriteSerializer(serializers.ModelSerializer):
     supplier = serializers.PrimaryKeyRelatedField(queryset=Supplier.objects.all())
+
     class Meta:
+        model = PurchaseOrder
         fields = ['supplier', 'date', 'status']
 
 
@@ -119,10 +123,6 @@ class PurchaseOrderItemWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = PurchaseOrderItem
         fields = ['order', 'product', 'quantity', 'warehouse', 'batch']
-
-    def validate_quantity(self, value: float) -> float:
-        if value <= 0:
-            raise serializers.Validation
 
 
 class SalesOrderWriteSerializer(serializers.ModelSerializer):

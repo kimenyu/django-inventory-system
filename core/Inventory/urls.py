@@ -13,7 +13,7 @@ from .views import (
     StockInListView, StockInCreateView, StockInDetailView, StockInUpdateView, StockInDeleteView,
     StockOutListView, StockOutCreateView, StockOutDetailView, StockOutUpdateView, StockOutDeleteView,
     InventoryListView, InventoryCreateView, InventoryDetailView, InventoryUpdateView, InventoryDeleteView,
-    AuditLogListView, AuditLogCreateView, AuditLogDetailView, AuditLogUpdateView, AuditLogDeleteView,
+    AuditLogListView, AuditLogCreateView, AuditLogDetailView, AuditLogListView
 )
 
 urlpatterns = [
@@ -112,6 +112,6 @@ urlpatterns = [
     path('audit-logs/', AuditLogListView.as_view(), name='auditlog-list'),
     path('audit-logs/create/', AuditLogCreateView.as_view(), name='auditlog-create'),
     path('audit-logs/<int:pk>/', AuditLogDetailView.as_view(), name='auditlog-detail'),
-    path('audit-logs/<int:pk>/update/', AuditLogUpdateView.as_view(), name='auditlog-update'),
-    path('audit-logs/<int:pk>/delete/', AuditLogDeleteView.as_view(), name='auditlog-delete'),
+    # path('audit-logs/<int:pk>/update/', AuditLogUpdateView.as_view(), name='auditlog-update'),
+    # path('audit-logs/<int:pk>/delete/', AuditLogDeleteView.as_view(), name='auditlog-delete'),
 ]
