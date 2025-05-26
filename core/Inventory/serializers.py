@@ -56,16 +56,19 @@ class WarehouseWriteSerializer(serializers.ModelSerializer):
 
 class StockInReadSerializer(serializers.ModelSerializer):
     class Meta:
+        model = StockIn
         fields = ['product', 'quantity', 'warehouse', 'batch', 'purchase_order', 'date']
 
 class StockOutReadSerializer(serializers.ModelSerializer):
     class Meta:
+        model = StockOut
         fields = ['product', 'quantity', 'warehouse', 'batch', 'sales_order', 'date']
 
 class WarehouseReadSerializer(serializers.ModelSerializer):
     stock_in = StockInReadSerializer(many=True)
     stock_out = StockOutReadSerializer(many=True)
     class Meta:
+        model = Warehouse
         fields = ['name', 'location', 'stock_in', 'stock_out']
 
 class SupplierWriteSerializer(serializers.ModelSerializer):
