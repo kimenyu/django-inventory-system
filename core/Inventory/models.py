@@ -105,18 +105,18 @@ class Inventory(models.Model):
     min_threshold = models.PositiveIntegerField(default=5)
     max_threshold = models.PositiveIntegerField(default=100)
 
-
     class Meta:
         unique_together = ('product', 'warehouse', 'batch')
 
     def check_thresholds(self):
         if self.quantity <= self.min_threshold:
             return "low"
+        elif self.quantity > self.min_threshold and self.quantity <= self.reorder_level:
+            return "reorder"
         elif self.quantity >= self.max_threshold:
             return "high"
-        elif self.quantity <= self.reorder_level:
-            return "reorder"
         return "normal"
+
 
 
 class AuditLog(models.Model):
