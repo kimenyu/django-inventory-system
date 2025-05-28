@@ -101,9 +101,22 @@ class Inventory(models.Model):
     warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE)
     batch = models.ForeignKey(Batch, on_delete=models.SET_NULL, null=True, blank=True)
     quantity = models.IntegerField(default=0)
+    reorder_level = models.PositiveIntegerField(default=10)
+    min_threshold = models.PositiveIntegerField(default=5)
+    max_threshold = models.PositiveIntegerField(default=100)
+
 
     class Meta:
         unique_together = ('product', 'warehouse', 'batch')
+
+    def check_thresholds(self):
+        if self.quantity <= self.min_threshold:
+            return "low"
+        elif self.quantity >= self.max_threshold:
+            return "high"
+        elif self.quantity <= self.reorder_level:
+            return "reorder"
+        return "normal"
 
 
 class AuditLog(models.Model):
