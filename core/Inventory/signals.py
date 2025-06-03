@@ -1,6 +1,6 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .models import StockIn, StockOut, Inventory
+from .models import StockIn, StockOut, Inventory, StockTransfer, AuditLog
 from django.core.mail import send_mail
 from accounts.models import CustomUser  # Import your custom user model
 
@@ -28,7 +28,6 @@ def update_inventory_on_stockout(sender, instance, created, **kwargs):
             inventory.quantity -= instance.quantity
             inventory.save()
         except Inventory.DoesNotExist:
-            # Optionally raise an error or log
             pass
 
 
@@ -56,7 +55,50 @@ def inventory_threshold_alert(sender, instance, **kwargs):
         send_mail(
             subject,
             message,
-            'njorogekimenyu@gmail.com',  # Change to your FROM address
+            'njorogekimenyu@gmail.com',
             list(recipients),
             fail_silently=False,
         )
+
+
+@receiver(post_save, sender=StockTransfer)
+def log_stock_transfer(sender, instance, created, **kwargs):
+    if created:
+        status_note = "Created"
+    elif instance.status == "COMPLETED":
+        status_note = "Completed"
+    elif instance.status == "CANCELED":
+        status_note = "Canceled"
+    else:
+        status_note = f"Updated to {instance.status}"
+
+    AuditLog.objects.create(
+        user=instance.created_by,
+        action=f"{status_note} stock transfer of {instance.quantity} '{instance.product}' "
+               f"from '{instance.source_warehouse}' to '{instance.destination_warehouse}'"
+    )
+
+@receiver(post_save, sender=StockTransfer)
+def handle_inventory_transfer(sender, instance, created, **kwargs):
+    if not created or instance.status != 'COMPLETED':
+        return
+
+    # Deduct from source warehouse
+    source_inventory, _ = Inventory.objects.get_or_create(
+        product=instance.product,
+        warehouse=instance.source_warehouse,
+        batch=instance.batch,
+        defaults={'quantity': 0}
+    )
+    source_inventory.quantity = max(source_inventory.quantity - instance.quantity, 0)
+    source_inventory.save()
+
+    # Add to destination warehouse
+    dest_inventory, _ = Inventory.objects.get_or_create(
+        product=instance.product,
+        warehouse=instance.destination_warehouse,
+        batch=instance.batch,
+        defaults={'quantity': 0}
+    )
+    dest_inventory.quantity += instance.quantity
+    dest_inventory.save()

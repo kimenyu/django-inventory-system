@@ -1,20 +1,5 @@
 from django.urls import path
-from .views import (
-    CategoryCreateView, CategoryListView, CategoryDetailView, CategoryUpdateView, CategoryDeleteView,
-    ProductCreateView, ProductListView, ProductDetailView, ProductUpdateView, ProductDeleteView,
-    WarehouseListView, WarehouseCreateView, WarehouseDetailView, WarehouseUpdateView, WarehouseDeleteView,
-    SupplierListView, SupplierCreateView, SupplierDetailView, SupplierUpdateView, SupplierDeleteView,
-    CustomerListView, CustomerCreateView, CustomerDetailView, CustomerUpdateView, CustomerDeleteView,
-    PurchaseOrderListView, PurchaseOrderCreateView, PurchaseOrderDetailView, PurchaseOrderUpdateView, PurchaseOrderDeleteView,
-    PurchaseOrderItemListView, PurchaseOrderItemCreateView, PurchaseOrderItemDetailView, PurchaseOrderItemUpdateView, PurchaseOrderItemDeleteView,
-    SalesOrderListView, SalesOrderCreateView, SalesOrderDetailView, SalesOrderUpdateView, SalesOrderDeleteView,
-    SalesOrderItemListView, SalesOrderItemCreateView, SalesOrderItemDetailView, SalesOrderItemUpdateView, SalesOrderItemDeleteView,
-    BatchListView, BatchCreateView, BatchDetailView, BatchUpdateView, BatchDeleteView,
-    StockInListView, StockInCreateView, StockInDetailView, StockInUpdateView, StockInDeleteView,
-    StockOutListView, StockOutCreateView, StockOutDetailView, StockOutUpdateView, StockOutDeleteView,
-    InventoryListView, InventoryCreateView, InventoryDetailView, InventoryUpdateView, InventoryDeleteView,
-    AuditLogListView, AuditLogCreateView, AuditLogDetailView, AuditLogListView
-)
+from .views import *
 
 urlpatterns = [
     # Categories
@@ -114,4 +99,12 @@ urlpatterns = [
     path('audit-logs/<int:pk>/', AuditLogDetailView.as_view(), name='auditlog-detail'),
     # path('audit-logs/<int:pk>/update/', AuditLogUpdateView.as_view(), name='auditlog-update'),
     # path('audit-logs/<int:pk>/delete/', AuditLogDeleteView.as_view(), name='auditlog-delete'),
+
+    #stock transfer
+    path('stock-transfers/', StockTransferListView.as_view(), name='stocktransfer-list'),
+    path('stock-transfers/create/', StockTransferCreateView.as_view(), name='stocktransfer-create'),
+    path('stock-transfers/<int:pk>/status/', StockTransferStatusUpdateView.as_view(), name='stocktransfer-status-update'),
+    path('stock-transfers/stats/', TransferStatsView.as_view(), name='stocktransfer-stats'),
+
+
 ]

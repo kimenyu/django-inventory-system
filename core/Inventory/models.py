@@ -1,5 +1,7 @@
 from django.db import models
 from accounts.models import CustomUser
+from django.conf import settings
+
 
 class Category(models.Model):
     name = models.CharField(max_length=100)
@@ -119,7 +121,46 @@ class Inventory(models.Model):
 
 
 
+class StockTransfer(models.Model):
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('COMPLETED', 'Completed'),
+        ('CANCELED', 'Canceled'),
+    ]
+
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='stock_transfers')
+    batch = models.ForeignKey(Batch, on_delete=models.SET_NULL, null=True, blank=True)
+    quantity = models.PositiveIntegerField()
+
+    source_warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='outgoing_transfers')
+    destination_warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE, related_name='incoming_transfers')
+
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    note = models.TextField(blank=True, null=True)
+    transfer_date = models.DateTimeField(auto_now_add=True)
+
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+
+    class Meta:
+        ordering = ['-transfer_date']
+
+    def __str__(self):
+        return f"Transfer {self.quantity} {self.product.name} from {self.source_warehouse} to {self.destination_warehouse}"
+
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if self.source_warehouse == self.destination_warehouse:
+            raise ValidationError("Source and destination warehouses must be different.")
+        if self.quantity <= 0:
+            raise ValidationError("Quantity must be greater than zero.")
+
+
+
 class AuditLog(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     action = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.action} - {self.timestamp}"
+

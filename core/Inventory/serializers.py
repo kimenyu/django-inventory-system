@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Category, Product, Warehouse, Batch, SalesOrder, SalesOrderItem, StockIn, StockOut, Supplier, Customer, PurchaseOrder, PurchaseOrderItem, Inventory, AuditLog
+from .models import Category, Product, Warehouse, Batch, SalesOrder, SalesOrderItem, StockIn, StockOut, Supplier, Customer, PurchaseOrder, PurchaseOrderItem, Inventory, AuditLog, StockTransfer
 from accounts.models import CustomUser
 
 class ProductWriteSerializer(serializers.ModelSerializer):
@@ -196,3 +196,10 @@ class AuditLogWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = AuditLog
         fields = ['user', 'action', 'timestamp']
+
+
+class StockTransferSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StockTransfer
+        fields = '__all__'
+        read_only_fields = ['transfer_date', 'created_by']
